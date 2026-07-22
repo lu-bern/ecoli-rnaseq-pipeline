@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+
+# Conda
+.env/
+.conda/
+
+# Data and results
+results/
+example_data/*.fastq.gz
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+rnaseq/work/raw_fastq/
+rnaseq/work/reference/

@@ -1,0 +1,19 @@
+name: ecoli-rnaseq
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.11
+  - r-base=4.3
+  - bowtie2
+  - samtools
+  - subread
+  - bioconductor-deseq2
+  - bioconductor-edger
+  - r-ggplot2
+  - r-optparse
+  - pip
+  - pip:
+      - pandas
+      - matplotlib
