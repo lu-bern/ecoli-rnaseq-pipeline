@@ -9,10 +9,20 @@ dependencies:
   - bowtie2
   - samtools
   - subread
+  - fastqc
+  - multiqc
   - bioconductor-deseq2
   - bioconductor-edger
+  - bioconductor-apeglm
   - r-ggplot2
   - r-optparse
+  - r-readr
+  - r-dplyr
+  - r-tibble
+  - r-tidyr
+  - r-pheatmap
+  - r-rcolorbrewer
+  - r-ggrepel
   - pip
   - pip:
       - pandas

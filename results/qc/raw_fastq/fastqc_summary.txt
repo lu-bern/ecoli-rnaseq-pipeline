@@ -1,0 +1,4 @@
+FastQC Summary Report
+---------------------
+Sample_A_1.fastq.gz PASS per_base_sequence_quality
+Sample_A_2.fastq.gz PASS per_base_sequence_quality

@@ -7,7 +7,6 @@ __pycache__/
 .conda/
 
 # Data and results
-results/
 example_data/*.fastq.gz
 
 # macOS

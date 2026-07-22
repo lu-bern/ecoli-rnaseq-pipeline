@@ -4,53 +4,58 @@ This repository provides a reproducible RNA-seq analysis pipeline for *Escherich
 
 ## Overview
 
-The project includes:
+The repository includes:
 
-- a Bash-based pipeline wrapper for alignment, sorting, and gene counting
-- configuration templates in `config/pipeline.env`
-- RNA-seq analysis scripts in `scripts/`
-- example outputs in `results/`
-- archived reference and sample data in `rnaseq/`
+- a Bash-based pipeline wrapper for raw read alignment, sorting, and gene counting
+- configurable pipeline settings in `config/pipeline.env`
+- DESeq2-based differential expression analysis scripts in `scripts/`
+- sample counts and metadata in `example_data/`
+- QC and plotting outputs in `results/`
 
-## Setup
+## Local setup
 
-1. Create the Conda environment:
+1. Create the environment:
    ```bash
    conda env create -f environment.yml
    conda activate ecoli-rnaseq
    ```
+2. Edit `config/pipeline.env` if you want to change `WORKDIR`, FASTQ location, or reference names.
+3. Add paired-end FASTQ files to `raw_fastq/` with the pattern `<sample>_1.fastq.gz` and `<sample>_2.fastq.gz`.
 
-2. Edit `config/pipeline.env` to point to your reference files and sample directory.
+## Quick validation
 
-3. Place paired-end FASTQ files in `raw_fastq/` using the naming convention `<sample>_1.fastq.gz` and `<sample>_2.fastq.gz`.
+Use the sample count dataset to verify the analysis scripts:
 
-## Running the pipeline
+```bash
+Rscript scripts/differential_gene_expression.R \
+  --counts example_data/test_counts.csv \
+  --metadata example_data/sample_metadata.tsv \
+  --outdir results/diff_exp
 
-Use the wrapper script:
+Rscript scripts/generate_plots.R \
+  --results results/diff_exp/differential_expression_results.csv \
+  --vst results/diff_exp/vst_normalized_counts.csv \
+  --outdir results/plots
+```
+
+## Full pipeline
+
+Run the full wrapper when raw reads and references are available:
 
 ```bash
 bash scripts/pipeline.sh
 ```
 
-This script loads `config/pipeline.env` and then runs the main pipeline wrapper at `scripts/ecoli_rnaseq_gcp_pipeline.sh`.
+This will run raw-read QC, build or reuse Bowtie2 indexes, align paired-end samples, generate alignment QC summaries, and count genes with `featureCounts`.
 
-## Expected outputs
+## Results
 
-The pipeline writes files under the configured `WORKDIR`:
-
-- `reference/` for genome FASTA and annotation files
-- `results/aligned/` for sorted BAM files
-- `results/counts/` for featureCounts output
-
-## Analysis scripts
-
-- `scripts/differential_gene_expression.R` — differential expression analysis and plot generation
-- `scripts/generate_plots.R` — volcano, MA, and heatmap plotting
-- `scripts/exploratory_plots.R` — expression distribution and cumulative expression plots
-- `scripts/quick_vis.R` — top 20 expressed gene bar plot
+- `results/qc/raw_fastq/` contains raw-read QC summaries
+- `results/qc/alignment/` contains alignment flagstat output
+- `results/diff_exp/` contains DESeq2 results and normalized counts
+- `results/plots/` contains visualization outputs
 
 ## Notes
 
-- `workflow/` is currently a placeholder for future workflow automation files.
-- Example result files are preserved in `results/`.
-- The `rnaseq/` directory contains archived data and reference materials used for this project.
+- The primary pipeline is in `scripts/`; the `rnaseq/` directory is archived raw/reference data and not required for example usage.
+- GitHub Actions in `.github/workflows/main.yml` validates the R scripts and shell wrapper.

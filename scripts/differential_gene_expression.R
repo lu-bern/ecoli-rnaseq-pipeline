@@ -1,23 +1,69 @@
 #!/usr/bin/env Rscript
 
-# 1. Load the data
-counts <- read.csv("/mnt/data/rnaseq/work/results/diff_exp/clean_counts.csv", row.names=1)
+suppressPackageStartupMessages({
+  library(DESeq2)
+  library(readr)
+  library(dplyr)
+  library(tibble)
+  library(optparse)
+})
 
-# 2. Check sample size
-if (ncol(counts) < 2) {
-    message("!!! Only one sample detected (", colnames(counts), ") !!!")
-    message("Note: Differential expression requires at least 2 samples.")
-    message("Generating a dummy VST file to satisfy the plotting script...")
-    
-    # Just save the counts as 'normalized' so the next script doesn't crash
-    write.csv(counts, "/mnt/data/rnaseq/work/results/diff_exp/vst_normalized_counts.csv")
-    
-    # Create a blank results file so the volcano plot script has something to read
-    res_dummy <- data.frame(log2FoldChange=0, padj=1, row.names=rownames(counts))
-    write.csv(res_dummy, "/mnt/data/rnaseq/work/results/diff_exp/differential_expression_results.csv")
-    
-} else {
-    library(DESeq2)
-    # ... (If you add more samples later, the full DESeq2 code would go here)
+option_list <- list(
+  make_option(c("-c", "--counts"), type = "character", default = NULL,
+              help = "Path to the counts CSV matrix", metavar = "path"),
+  make_option(c("-m", "--metadata"), type = "character", default = NULL,
+              help = "Path to the sample metadata TSV", metavar = "path"),
+  make_option(c("-o", "--outdir"), type = "character", default = "results/diff_exp",
+              help = "Output directory for DESeq2 results", metavar = "path")
+)
+
+opt <- parse_args(OptionParser(option_list = option_list))
+
+if (is.null(opt$counts) || is.null(opt$metadata)) {
+  stop("Please provide both --counts and --metadata arguments.")
 }
-cat("Done! Created placeholder files for plotting.\n")
+
+if (!dir.exists(opt$outdir)) dir.create(opt$outdir, recursive = TRUE)
+
+counts <- read_csv(opt$counts)
+metadata <- read_tsv(opt$metadata)
+
+if (!"sample" %in% colnames(metadata) || !"condition" %in% colnames(metadata)) {
+  stop("Metadata must contain 'sample' and 'condition' columns.")
+}
+
+if (!"gene" %in% colnames(counts)) {
+  stop("Counts CSV must contain a 'gene' column.")
+}
+
+count_matrix <- counts %>% column_to_rownames("gene")
+metadata <- metadata %>% filter(sample %in% colnames(count_matrix))
+metadata <- metadata %>% mutate(condition = factor(condition))
+metadata <- metadata %>% arrange(sample)
+count_matrix <- count_matrix[, metadata$sample, drop = FALSE]
+
+if (nrow(metadata) < 2) {
+  stop("At least two samples are required for differential expression analysis.")
+}
+
+dds <- DESeqDataSetFromMatrix(countData = count_matrix,
+                              colData = metadata,
+                              design = ~ condition)
+
+keep <- rowSums(counts(dds)) >= 10
+dds <- dds[keep, ]
+
+dds <- DESeq(dds)
+res <- results(dds, alpha = 0.05)
+res <- lfcShrink(dds, coef = 2, type = "apeglm")
+res_df <- as.data.frame(res) %>% rownames_to_column("gene")
+
+vsd <- vst(dds, blind = FALSE)
+vsd_mat <- assay(vsd)
+
+write_csv(res_df, file.path(opt$outdir, "differential_expression_results.csv"))
+write_csv(as.data.frame(vsd_mat) %>% rownames_to_column("gene"),
+          file.path(opt$outdir, "vst_normalized_counts.csv"))
+saveRDS(dds, file.path(opt$outdir, "dds_object.rds"))
+
+message("DESeq2 differential expression completed. Results saved to ", opt$outdir)
