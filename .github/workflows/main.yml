@@ -24,11 +24,14 @@ jobs:
           python -m pip install pandas matplotlib
       - name: Install R dependencies
         run: |
-          Rscript -e 'install.packages(c("optparse", "readr", "dplyr", "ggplot2", "pheatmap", "RColorBrewer", "tibble", "apeglm"), repos="https://cloud.r-project.org")'
+          Rscript -e 'install.packages(c("optparse", "readr", "dplyr", "ggplot2", "pheatmap", "RColorBrewer", "tibble"), repos="https://cloud.r-project.org")'
+          Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE)) install.packages("BiocManager", repos="https://cloud.r-project.org")'
+          Rscript -e 'BiocManager::install(c("DESeq2", "apeglm"), update=FALSE, ask=FALSE)'
       - name: Lint shell scripts
         run: |
           sudo apt-get update && sudo apt-get install -y shellcheck
           shellcheck scripts/*.sh
       - name: Run R syntax check for DESeq2 pipeline
         run: |
-          Rscript -e 'source("scripts/differential_gene_expression.R")'
+          Rscript -e 'parse(file="scripts/differential_gene_expression.R")'
+          Rscript -e 'parse(file="scripts/generate_plots.R")'

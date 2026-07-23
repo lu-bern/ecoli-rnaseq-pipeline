@@ -17,17 +17,36 @@ A reproducible RNA-seq analysis pipeline for *Escherichia coli*. This repository
 - `scripts/`: active pipeline wrapper and analysis scripts.
 - `example_data/`: test counts, metadata, and sample dataset.
 - `results/`: generated example plots, QC summaries, and results.
-- `rnaseq/`: archived raw and reference data for reference only.
 - `.github/workflows/`: GitHub Actions automation.
 - `docs/`: pipeline usage and details.
 
 > The active workflow is implemented in `scripts/`; `rnaseq/` is an archival copy and not required for the example execution.
+
+## Dataset
+
+The example dataset contains RNA-seq counts for three *E. coli* samples across two conditions:
+
+- `sample_A`: control
+- `sample_B`: treated
+- `sample_C`: treated
+
+The dataset is intended to demonstrate the DESeq2 workflow and generate example plots without requiring raw sequencing data.
 
 ## Requirements
 
 - `conda` or `mamba`
 - Linux/macOS
 - `environment.yml` defines required tools and R packages
+
+## Bioconductor packages
+
+Some Bioconductor packages (for example `DESeq2` and `apeglm`) are not always available as conda packages for every platform. Install them in R using `BiocManager` after activating the conda environment:
+
+```r
+if (!requireNamespace("BiocManager", quietly = TRUE))
+   install.packages("BiocManager", repos = "https://cloud.r-project.org")
+BiocManager::install(c("DESeq2", "apeglm"), update = FALSE, ask = FALSE)
+```
 
 ## Setup
 
@@ -64,11 +83,21 @@ A reproducible RNA-seq analysis pipeline for *Escherichia coli*. This repository
 
 ### Plots
 
+These example figures illustrate the expected analysis outputs.
+
 ![Volcano plot](results/plots/volcano_plot.png)
 
 ![MA plot](results/plots/ma_plot.png)
 
 ![Top 20 gene heatmap](results/plots/top20_heatmap.png)
+
+Note: the example figures `results/plots/ma_plot.png`, `results/plots/volcano_plot.png`, and `results/plots/top20_heatmap.png` were regenerated in this update.
+
+### Example results summary
+
+- `gene_004` is significantly downregulated in treated versus control.
+- Volcano plot highlights genes with `|log2FC| > 1` and `padj < 0.05`.
+- MA plot shows fold-change relative to mean normalized expression.
 
 ### QC summaries
 

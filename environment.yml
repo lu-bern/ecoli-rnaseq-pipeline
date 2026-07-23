@@ -23,6 +23,9 @@ dependencies:
   - r-pheatmap
   - r-rcolorbrewer
   - r-ggrepel
+  - bioconductor-AnnotationDbi
+  - bioconductor-tximport
+  - r-reshape2
   - pip
   - pip:
       - pandas

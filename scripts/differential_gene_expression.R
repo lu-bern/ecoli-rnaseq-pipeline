@@ -54,8 +54,15 @@ keep <- rowSums(counts(dds)) >= 10
 dds <- dds[keep, ]
 
 dds <- DESeq(dds)
-res <- results(dds, alpha = 0.05)
-res <- lfcShrink(dds, coef = 2, type = "apeglm")
+
+condition_levels <- levels(metadata$condition)
+if (length(condition_levels) != 2) {
+  stop("DESeq2 comparison currently supports exactly two conditions. Found: ", paste(condition_levels, collapse = ", "))
+}
+
+contrast <- c("condition", condition_levels[2], condition_levels[1])
+res <- results(dds, contrast = contrast, alpha = 0.05)
+res <- lfcShrink(dds, contrast = contrast, type = "apeglm")
 res_df <- as.data.frame(res) %>% rownames_to_column("gene")
 
 vsd <- vst(dds, blind = FALSE)

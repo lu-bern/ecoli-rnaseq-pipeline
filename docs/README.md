@@ -11,6 +11,7 @@ The repository includes:
 - DESeq2-based differential expression analysis scripts in `scripts/`
 - sample counts and metadata in `example_data/`
 - QC and plotting outputs in `results/`
+- GitHub Actions CI in `.github/workflows/`
 
 ## Local setup
 
@@ -21,6 +22,16 @@ The repository includes:
    ```
 2. Edit `config/pipeline.env` if you want to change `WORKDIR`, FASTQ location, or reference names.
 3. Add paired-end FASTQ files to `raw_fastq/` with the pattern `<sample>_1.fastq.gz` and `<sample>_2.fastq.gz`.
+
+Bioconductor note:
+
+If a Bioconductor package is missing from the conda channels on your platform, install it in R after activating the environment:
+
+```r
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager", repos = "https://cloud.r-project.org")
+BiocManager::install(c("DESeq2", "apeglm"), update = FALSE, ask = FALSE)
+```
 
 ## Quick validation
 
